@@ -40,10 +40,6 @@ jobs:
   deploy:
     if: ${{ inputs.pr_approval_required != 'true' || inputs.deployment_environment == '' }}
     runs-on: ubuntu-latest
-    permissions:
-      contents: read
-      deployments: write
-      id-token: write
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -75,10 +71,6 @@ jobs:
     if: ${{ inputs.pr_approval_required == 'true' && inputs.deployment_environment != '' }}
     runs-on: ubuntu-latest
     environment: ${{ inputs.deployment_environment }}
-    permissions:
-      contents: read
-      deployments: write
-      id-token: write
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
