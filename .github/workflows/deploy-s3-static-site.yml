@@ -11,22 +11,27 @@ on:
         required: true
     inputs:
       source_dir:
+        type: string
         description: 'Source directory to upload to S3.'
         required: false
         default: 'public'
       cache_control:
+        type: string
         description: 'Cache-Control header for uploaded objects.'
         required: false
         default: 'max-age=31536000,public'
       delete_remote:
+        type: string
         description: 'Remove remote objects that are not present locally.'
         required: false
         default: 'false'
       pr_approval_required:
+        type: string
         description: 'When true, deploys through a GitHub environment that can require PR approval.'
         required: false
         default: 'false'
       deployment_environment:
+        type: string
         description: 'GitHub environment name used for approval gating when pr_approval_required=true.'
         required: false
         default: ''
