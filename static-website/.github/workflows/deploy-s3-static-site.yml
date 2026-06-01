@@ -1,0 +1,105 @@
+name: "Reusable Deploy S3 Static Website"
+
+on:
+  workflow_call:
+    inputs:
+      oidc_role_arn:
+        description: 'AWS role ARN to assume when using GitHub OIDC.'
+        required: true
+      aws_region:
+        description: 'AWS region for the target bucket.'
+        required: true
+        default: 'us-east-1'
+      bucket_name:
+        description: 'Target S3 bucket name.'
+        required: true
+      source_dir:
+        description: 'Source directory to upload to S3.'
+        required: false
+        default: 'public'
+      cache_control:
+        description: 'Cache-Control header for uploaded objects.'
+        required: false
+        default: 'max-age=31536000,public'
+      delete_remote:
+        description: 'Remove remote objects that are not present locally.'
+        required: false
+        default: 'false'
+      pr_approval_required:
+        description: 'When true, deploys through a GitHub environment that can require PR approval.'
+        required: false
+        default: 'false'
+      deployment_environment:
+        description: 'GitHub environment name used for approval gating when pr_approval_required=true.'
+        required: false
+        default: ''
+
+jobs:
+  deploy:
+    if: ${{ inputs.pr_approval_required != 'true' || inputs.deployment_environment == '' }}
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      deployments: write
+      id-token: write
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Configure AWS credentials via OIDC
+        uses: aws-actions/configure-aws-credentials@v3
+        with:
+          role-to-assume: ${{ inputs.oidc_role_arn }}
+          aws-region: ${{ inputs.aws_region }}
+
+      - name: Sync files to S3
+        shell: bash
+        run: |
+          set -euo pipefail
+          SOURCE_DIR="${{ inputs.source_dir }}"
+          BUCKET="${{ inputs.bucket_name }}"
+          CACHE_CONTROL="${{ inputs.cache_control }}"
+          DELETE_FLAG=""
+          if [[ "${{ inputs.delete_remote }}" == 'true' ]]; then
+            DELETE_FLAG='--delete'
+          fi
+
+          aws s3 sync "$SOURCE_DIR" "s3://$BUCKET" \
+            --acl public-read \
+            --cache-control "$CACHE_CONTROL" \
+            $DELETE_FLAG
+
+  deploy_with_approval:
+    if: ${{ inputs.pr_approval_required == 'true' && inputs.deployment_environment != '' }}
+    runs-on: ubuntu-latest
+    environment: ${{ inputs.deployment_environment }}
+    permissions:
+      contents: read
+      deployments: write
+      id-token: write
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Configure AWS credentials via OIDC
+        uses: aws-actions/configure-aws-credentials@v3
+        with:
+          role-to-assume: ${{ inputs.oidc_role_arn }}
+          aws-region: ${{ inputs.aws_region }}
+
+      - name: Sync files to S3
+        shell: bash
+        run: |
+          set -euo pipefail
+          SOURCE_DIR="${{ inputs.source_dir }}"
+          BUCKET="${{ inputs.bucket_name }}"
+          CACHE_CONTROL="${{ inputs.cache_control }}"
+          DELETE_FLAG=""
+          if [[ "${{ inputs.delete_remote }}" == 'true' ]]; then
+            DELETE_FLAG='--delete'
+          fi
+
+          aws s3 sync "$SOURCE_DIR" "s3://$BUCKET" \
+            --acl public-read \
+            --cache-control "$CACHE_CONTROL" \
+            $DELETE_FLAG
