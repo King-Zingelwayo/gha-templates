@@ -4,29 +4,42 @@ This repository hosts reusable GitHub Actions workflow templates for common CI/C
 
 ## Available Templates
 
-### [S3 Static Website Deployment](./static-website/)
+This repository groups reusable workflow-templates and template source folders.
 
-A reusable GitHub workflow for deploying static websites to Amazon S3.
+**Workflows (standalone templates):** The `.github/workflows/` directory groups standalone workflow-templates — each subfolder is an independent reusable template you can call via `uses:`.
 
-**Features:**
-- OIDC-based AWS role assumption (no AWS access keys required)
-- Optional PR approval gating via GitHub environments
-- Static website sync with configurable cache control
-- Optional deletion of stale files
+Examples of template subfolders:
 
-**Use this template to:**
-- Deploy static websites, documentation sites, or front-end applications to S3
-- Automate deployments on push to main branch
-- Require approval before production deployments
-- Manage cache headers for optimal performance
+- `.github/workflows/static-site/`
+- `.github/workflows/terraform/`
 
-For detailed usage instructions, see the [S3 Static Website template README](./static-website/README.md).
+This repo currently contains:
+
+- `.github/workflows/static-site/` — reusable workflows and helpers for deploying static sites (S3 deploy workflow is provided).
+
+See the README inside each workflow subfolder for inputs, required secrets, and examples (for example, `.github/workflows/static-site/README.md`).
+
+## Examples
+
+Call the reusable S3 deploy workflow from another repository (remote reference):
+
+```yaml
+jobs:
+	deploy:
+		uses: owner/repo/.github/workflows/static-site/deploy-s3-static-site.yml@main
+		secrets:
+			AWS_ROLE_ARN: ${{ secrets.AWS_ROLE_ARN }}
+			AWS_REGION: ${{ secrets.AWS_REGION }}
+			S3_BUCKET_NAME: ${{ secrets.S3_BUCKET_NAME }}
+		with:
+			source_dir: 'public'
+```
 
 ## Getting Started
 
-Each template includes:
-- A reusable workflow definition (`.github/workflows/`)
-- Documentation with usage examples
-- Input parameters for customization
+This repository currently contains standalone workflow templates under `.github/workflows/`.
 
-To use any template, reference it in your repository's workflow file.
+To add a new workflow template:
+- create a new subfolder under `.github/workflows/`
+- add one or more reusable workflow files and a README for inputs, secrets, and examples
+- call the workflow from another repo or from a local workflow using `uses:`
