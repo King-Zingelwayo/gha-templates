@@ -2,17 +2,14 @@ name: "Reusable Deploy S3 Static Website"
 
 on:
   workflow_call:
+    secrets:
+      AWS_ROLE_ARN:
+        required: true
+      AWS_REGION:
+        required: true
+      S3_BUCKET_NAME:
+        required: true
     inputs:
-      oidc_role_arn:
-        description: 'AWS role ARN to assume when using GitHub OIDC.'
-        required: true
-      aws_region:
-        description: 'AWS region for the target bucket.'
-        required: true
-        default: 'us-east-1'
-      bucket_name:
-        description: 'Target S3 bucket name.'
-        required: true
       source_dir:
         description: 'Source directory to upload to S3.'
         required: false
@@ -49,15 +46,15 @@ jobs:
       - name: Configure AWS credentials via OIDC
         uses: aws-actions/configure-aws-credentials@v3
         with:
-          role-to-assume: ${{ inputs.oidc_role_arn }}
-          aws-region: ${{ inputs.aws_region }}
+          role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
+          aws-region: ${{ secrets.AWS_REGION }}
 
       - name: Sync files to S3
         shell: bash
         run: |
           set -euo pipefail
           SOURCE_DIR="${{ inputs.source_dir }}"
-          BUCKET="${{ inputs.bucket_name }}"
+          BUCKET="${{ secrets.S3_BUCKET_NAME }}"
           CACHE_CONTROL="${{ inputs.cache_control }}"
           DELETE_FLAG=""
           if [[ "${{ inputs.delete_remote }}" == 'true' ]]; then
@@ -84,15 +81,15 @@ jobs:
       - name: Configure AWS credentials via OIDC
         uses: aws-actions/configure-aws-credentials@v3
         with:
-          role-to-assume: ${{ inputs.oidc_role_arn }}
-          aws-region: ${{ inputs.aws_region }}
+          role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
+          aws-region: ${{ secrets.AWS_REGION }}
 
       - name: Sync files to S3
         shell: bash
         run: |
           set -euo pipefail
           SOURCE_DIR="${{ inputs.source_dir }}"
-          BUCKET="${{ inputs.bucket_name }}"
+          BUCKET="${{ secrets.S3_BUCKET_NAME }}"
           CACHE_CONTROL="${{ inputs.cache_control }}"
           DELETE_FLAG=""
           if [[ "${{ inputs.delete_remote }}" == 'true' ]]; then
