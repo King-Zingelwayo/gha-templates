@@ -63,7 +63,6 @@ jobs:
           fi
 
           aws s3 sync "$SOURCE_DIR" "s3://$BUCKET" \
-            --acl public-read \
             --cache-control "$CACHE_CONTROL" \
             $DELETE_FLAG
 
